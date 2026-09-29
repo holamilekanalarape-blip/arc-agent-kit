@@ -41,11 +41,18 @@ Built for **humans**. Perfect for **AI**.
 
 ## Wallet
 
-| Network | Purpose | Address |
-|---|---|---|
-| Arc | Public wallet | `0xE90f7075d783a69A0884c6300DAd1658287521Df` |
+### Public Wallet Address
 
-> Public wallet only. Never share your private key or recovery phrase.
+| Network | Wallet Type | Address |
+|---|---|---|
+| Arc | MetaMask | `0xE90f7075d783a69A0884c6300DAd1658287521Df` |
+
+### Supported Wallets
+
+- **MetaMask** — Browser extension, mobile app. [https://metamask.io](https://metamask.io)
+- **Arc Agent Kit Native** — Local signing, keystore support (simple & secure modes)
+
+> **⚠️ Important:** Public wallet only. Never share your private key or recovery phrase.
 
 ---
 
