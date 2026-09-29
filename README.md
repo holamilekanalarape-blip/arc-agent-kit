@@ -1,50 +1,348 @@
-1| <div align="center">
-2| 
-3| <img src="assets/logo.png" alt="Arc Agent Kit" width="128">
-4| 
-5| # Arc Agent Kit
-6| 
-7| **All-in-one MCP toolkit for the [Arc](https://arc.exploreme.pro) blockchain, in TypeScript.**
-8| 
-9| Wallet operations · local-only signing · transfers · contract deploy & verification · staking (delegate / undelegate) · full chain exploration — from **Claude Code**, **Cursor**, **Codex**, [...]
-10| 
-11| Built for **humans**. Perfect for **AI**.
-12| 
-13| [![MCP](https://img.shields.io/badge/MCP-server-6E56CF)](https://modelcontextprotocol.io)
-14| [![Arc](https://img.shields.io/badge/Arc-mainnet_5042-0a3ab5)](https://arc.exploreme.pro)
-15| [![Node](https://img.shields.io/badge/Node-%E2%89%A520-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
-16| [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-17| [![viem](https://img.shields.io/badge/built_with-viem-FFC517)](https://viem.sh)
-18| [![License](https://img.shields.io/badge/License-MIT-blue)](#license)
-19| 
-20| </div>
-21| 
-22| ---
-23| 
-24| ## Why Arc Agent Kit
-25| 
-26| **Your private key never leaves your machine.** MCP only prepares *unsigned* transactions — signing happens locally, and the key is never sent to the AI model or a remote server.
-27| 
-28| **Two protection levels.**
-29| - **Simple** — a guard hook blocks the agent from reading `.env`.
-30| - **Secure** — encrypted keystore + a signing daemon in a separate, isolated process; the agent only ever receives the signed hex.
-31| 
-32| **Two ways to use.**
-33| - **Subscription** (free) — connect MCP to Claude Code / Cursor / Codex and use your existing subscription.
-34| - **AI SDK** (developers) — programmatic agents via the Vercel AI SDK with Claude or OpenAI.
-35| 
-36| **Arc-native.** Explore blocks, accounts, tokens, validators, and verify contracts. Native transfers: MCP prepares an unsigned skeleton; you sign locally and broadcast via Arc RPC.
-37| 
-38| > **Mainnet — real funds.** Default network is **Arc mainnet (chain ID 5042, native USDC)**. There is **no faucet**. Signing a filled transfer and broadcasting it spends **real USDC**. Prefer **[...]
-39| 
-40| ---
-41| 
-42| ## Wallet
-43| 
-| Public wallet address: `0xE90f7075d783a69A0884c6300DAd1658287521Df`
-| 
-| > Keep this as a public address only. Never share your private key or recovery phrase.
-| 
-| ---
-| 
-| ## Architecture
+<div align="center">
+
+<img src="assets/logo.png" alt="Arc Agent Kit" width="128">
+
+# Arc Agent Kit
+
+**All-in-one MCP toolkit for the [Arc](https://arc.exploreme.pro) blockchain, in TypeScript.**
+
+Wallet operations · local-only signing · transfers · contract deploy & verification · staking (delegate / undelegate) · full chain exploration — from **Claude Code**, **Cursor**, **Codex**, [...]
+
+Built for **humans**. Perfect for **AI**.
+
+[![MCP](https://img.shields.io/badge/MCP-server-6E56CF)](https://modelcontextprotocol.io)
+[![Arc](https://img.shields.io/badge/Arc-mainnet_5042-0a3ab5)](https://arc.exploreme.pro)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A520-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![viem](https://img.shields.io/badge/built_with-viem-FFC517)](https://viem.sh)
+[![License](https://img.shields.io/badge/License-MIT-blue)](#license)
+
+</div>
+
+---
+
+## Why Arc Agent Kit
+
+**Your private key never leaves your machine.** MCP only prepares *unsigned* transactions — signing happens locally, and the key is never sent to the AI model or a remote server.
+
+**Two protection levels.**
+- **Simple** — a guard hook blocks the agent from reading `.env`.
+- **Secure** — encrypted keystore + a signing daemon in a separate, isolated process; the agent only ever receives the signed hex.
+
+**Two ways to use.**
+- **Subscription** (free) — connect MCP to Claude Code / Cursor / Codex and use your existing subscription.
+- **AI SDK** (developers) — programmatic agents via the Vercel AI SDK with Claude or OpenAI.
+
+**Arc-native.** Explore blocks, accounts, tokens, validators, and verify contracts. Native transfers: MCP prepares an unsigned skeleton; you sign locally and broadcast via Arc RPC.
+
+> **Mainnet — real funds.** Default network is **Arc mainnet (chain ID 5042, native USDC)**. There is **no faucet**. Signing a filled transfer and broadcasting it spends **real USDC**. Prefer **[...]
+
+---
+
+## Wallet
+
+| Network | Purpose | Address |
+|---|---|---|
+| Arc | Public wallet | `0xE90f7075d783a69A0884c6300DAd1658287521Df` |
+
+> Public wallet only. Never share your private key or recovery phrase.
+
+---
+
+## Architecture
+
+```
+┌────────────────────────────┐
+│  You (chat or code)        │
+├────────────────────────────┤
+│  AI Agent                  │
+│  (Claude / GPT / local)    │
+│                            │
+│  Sees: wallet address,     │
+│        MCP tool results    │
+│  Never sees: private key   │
+├──────────┬─────────────────┤
+│ sign-tx  │  MCP Server     │
+│ (local)  │  (remote)       │
+│          │                 │
+│ Signs tx │  prepare_*      │
+│ locally  │  broadcast      │
+│          │  query chain    │
+│ Key in   │  verify         │
+│ .env or  │  explorer       │
+│ keystore │  staking        │
+└──────────┴─────────────────┘
+```
+
+**Key principle:** the private key NEVER leaves your machine. Explorer MCP prepares an unsigned skeleton → you sign locally → broadcast via Arc RPC (`scripts/broadcast-tx.ts`). MCP does not broadcast or sign for you.
+
+---
+
+## Requirements
+
+- **Node.js 20+** and **npm** — required
+- **GNU Make** — included on macOS/Linux by default
+- **Docker + Docker Compose** — optional, only if you want supply-chain isolated installs (recommended for production)
+
+The kit ships with two execution modes:
+- **`native`** (default) — runs `npm install` and scripts directly on the host. Fastest, simplest.
+- **`docker`** — installs and runs everything inside Docker containers. Install scripts can't touch the host. Recommended if you don't fully trust npm dependencies.
+
+---
+
+## Quick Start — Claude Code
+
+```bash
+git clone https://github.com/stakeme-team/arc-agent-kit
+cd arc-agent-kit
+
+make install   # install dependencies
+make wallet    # create wallet
+claude         # open Claude Code
+```
+
+Run `make help` to see all shortcuts.
+
+Claude Code auto-detects `.mcp.json` and connects to Arc. Use the built-in skills:
+
+| Skill | What it does |
+|---|---|
+| `/wallet` | Show wallet address and balance |
+| `/send` | Send tokens to a random address from a recent transaction |
+| `/deploy` | Deploy and verify a smart contract |
+
+> **Real funds.** Arc mainnet USDC has real value. `/send` picks a random recipient from a recent transaction — only use it with an amount you're fine losing.
+
+Or just chat:
+
+> *"Send 0.001 USDC to a random address from a recent transaction"*
+
+> See also: [Cursor setup](docs/cursor-setup.md) · [Codex setup](docs/codex-setup.md)
+
+---
+
+## Quick Start — AI SDK
+
+```bash
+git clone https://github.com/stakeme-team/arc-agent-kit
+cd arc-agent-kit
+make install
+
+cp .env.example .env
+make wallet
+# Edit .env: add ANTHROPIC_API_KEY or OPENAI_API_KEY
+
+make send       # send tokens to random address
+make deploy     # deploy & verify contract
+```
+
+Switch between Claude and OpenAI:
+```env
+AI_PROVIDER=anthropic   # or openai
+```
+
+---
+
+## Run in Docker
+
+Both quick starts above default to running on the host. To run everything inside Docker (isolating npm install and the signer from your host), pin Docker mode once:
+
+```bash
+make use-docker     # writes MODE := docker to Makefile.local
+make install        # now runs inside Docker
+make wallet
+```
+
+Switch back with `make use-native`. You can also override per-command without pinning: `MODE=docker make install`.
+
+---
+
+## Security
+
+### Simple Mode (default)
+
+Private key in `.env`, protected by guard hooks that block the agent from reading it.
+
+```bash
+npx tsx scripts/wallet-manager.ts generate --simple
+```
+
+Guard blocks 20 attack vectors (27 checks total, tested):
+```bash
+npm run security-test
+# ✓ cat .env           → BLOCKED
+# ✓ grep PRIVATE .env  → BLOCKED
+# ✓ echo $PRIVATE_KEY  → BLOCKED
+# ✓ python3 read .env  → BLOCKED
+# ... 27/27 passed ✓
+```
+
+### Secure Mode (signing daemon)
+
+Private key encrypted in keystore, decrypted only in a separate daemon process. The agent physically cannot access the key.
+
+```bash
+# Create encrypted wallet
+npx tsx scripts/wallet-manager.ts generate --secure
+
+# Start daemon (separate terminal)
+npx tsx scripts/signer-daemon.ts
+# Unlock password: ********
+# ✓ Signer ready: 0x742d...
+# ✓ Socket: /tmp/arc-signer.sock
+```
+
+```
+┌───────────────────┐     ┌───────────────────┐
+│  Agent            │     │  Signer Daemon     │
+│  (no key access)  │────▶│  (key in memory)   │
+│                   │unix │                    │
+│  Gets: signed hex │◀────│  Signs tx          │
+└───────────────────┘sock └───────────────────┘
+```
+
+<details>
+<summary><b>Approval modes (auto / manual)</b></summary>
+
+**Auto mode** (default) — signs transactions immediately:
+```bash
+npx tsx scripts/signer-daemon.ts
+```
+
+**Manual mode** — requires human approval for each transaction:
+```bash
+npx tsx scripts/signer-daemon.ts --manual
+```
+
+In manual mode, every signing request shows transaction details and waits for your approval:
+
+```
+  ⚠  Sign transaction?
+     Type:    TRANSFER
+     To:      0x5f98ce551fFbd3C5C6bA571e0F793F8ADE228F96
+     Value:   0.01 (10000000000000000 wei)
+     Gas:     25200
+
+     Approve? [y/n]: y
+     ✓ Signed: to=0x5f98ce... value=10000000000000000
+```
+
+If you reject (`n`), the agent receives an error and can inform you that the transaction was declined.
+
+</details>
+
+<details>
+<summary><b>Password file (for Docker detached)</b></summary>
+
+To run the daemon without interactive password input:
+
+```bash
+echo "your_password" > .keystore/.password
+chmod 600 .keystore/.password
+
+docker compose up -d signer
+docker compose logs signer
+```
+
+</details>
+
+<details>
+<summary><b>Docker isolation</b></summary>
+
+Protect against supply chain attacks in npm packages:
+
+```bash
+# Install deps in container (node_modules isolated)
+docker compose run --rm install
+
+# Run demos in container
+docker compose run --rm dev npx tsx examples/01-send-tokens.ts
+
+# Signer daemon with NO network access
+docker compose up signer
+```
+
+</details>
+
+---
+
+## MCP Tools
+
+Two servers (see `.mcp.json`):
+
+| Server | URL | Role |
+|---|---|---|
+| Explorer | `https://api.arc.exploreme.pro/mcp` | **18 tools.** Reads + unsigned native transfer. Does **not** sign or broadcast. |
+| Docs | `https://docs.arc.io/mcp` | Official Arc docs search / get page. Read-only. |
+
+| Category | Live explorer tools |
+|---|---|
+| Chain | `stats_overview`, `indexer_info`, `gas_oracle` |
+| Blocks / txs | `list_blocks`, `get_block`, `get_transaction` |
+| Accounts | `get_account`, `account_delegations` |
+| Tokens | `list_tokens` |
+| Search | `search` |
+| Validators | `list_validators`, `get_validator` |
+| Contracts | `get_evm_compiler_versions`, `verify_evm_contract_standard_json`, `verify_evm_contract_multi_part`, `get_evm_contract_abi` |
+| Unsigned tx | `prepare_native_transfer` (`to` + `value` wei), `prepare_staking_tx` |
+
+`prepare_native_transfer` does not take `from`/`amount`. Broadcast with `npx tsx scripts/broadcast-tx.ts` after local signing.
+
+> `list_validators` schema text may still mention 0G. Ignore it. There is no faucet tool on this server.
+
+---
+
+## Project Structure
+
+```
+arc-agent-kit/
+├── CLAUDE.md                    # Agent instructions for Arc
+├── .mcp.json                    # Claude Code MCP config
+├── .cursor/mcp.json             # Cursor MCP config
+├── .codex/config.toml           # Codex MCP config (via mcp-remote)
+│
+├── .claude/
+│   ├── settings.json            # Guard hook config
+│   └── skills/
+│       ├── wallet/SKILL.md      # /wallet skill
+│       ├── send/SKILL.md        # /send skill
+│       └── deploy/SKILL.md      # /deploy skill
+│
+├── scripts/
+│   ├── wallet-manager.ts        # Create/import wallet
+│   ├── sign-tx.ts               # Sign tx (stdin → stdout)
+│   ├── signer-daemon.ts         # Signing daemon (secure mode)
+│   ├── guard.sh                 # Block agent from reading keys
+│   └── security-test.ts         # Test guard (20 attack vectors, 27 checks)
+│
+├── src/                         # AI SDK core library
+│   ├── mcp-client.ts            # MCP client factory
+│   ├── wallet.ts                # Wallet (address only for LLM)
+│   ├── signing-bridge.ts        # Auto-sign prepare_* results
+│   ├── agent.ts                 # Agent factory (Claude + OpenAI)
+│   └── utils.ts                 # Helpers
+│
+├── examples/                    # AI SDK demos
+│   ├── 01-send-tokens.ts
+│   └── 02-deploy-and-verify.ts
+│
+├── contracts/
+│   ├── SimpleStorage.sol
+│   └── compiled/SimpleStorage.json
+│
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── claude-code-setup.md
+│   ├── cursor-setup.md
+│   ├── codex-setup.md
+│   └── prompts.md               # Ready-to-use prompts
+│
+├── Dockerfile
+└── docker-compose.yml
+```
+
+---
+
+## License
+
+MIT
